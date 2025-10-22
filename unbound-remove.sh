@@ -48,7 +48,7 @@ case "${confirm_restore:-y}" in
     ;;
     *)
     echo "🔧 手动设置 /etc/resolv.conf 使用 Google DNS"
-    echo -e "nameserver 8.8.8.8\nnameserver 8.8.4.4" > /etc/resolv.conf
+    echo -e "nameserver  1.1.1.1\nnameserver  8.8.8.8" > /etc/resolv.conf
     echo "✅ /etc/resolv.conf 已设为公共 DNS"
     ;;
 esac
