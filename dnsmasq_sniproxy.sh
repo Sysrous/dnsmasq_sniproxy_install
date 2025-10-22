@@ -136,8 +136,10 @@ config_firewall(){
                 iptables -L -n | grep -i ${port} > /dev/null 2>&1
                 if [ $? -ne 0 ]; then
                     iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport ${port} -j ACCEPT
-                    if [ ${port} == "53" ]; then
+                    if [ ${port} == "${dnsport}" ]; then
+                        # DNS端口需要同时支持TCP和UDP（解决香港等地区UDP限制问题）
                         iptables -I INPUT -m state --state NEW -m udp -p udp --dport ${port} -j ACCEPT
+                        echo -e "[${green}Info${plain}] DNS port ${green}${port}${plain} configured for TCP+UDP."
                     fi
                 else
                     echo -e "[${green}Info${plain}] port ${green}${port}${plain} already be enabled."
@@ -154,8 +156,10 @@ config_firewall(){
             default_zone=$(firewall-cmd --get-default-zone)
             for port in ${ports}; do
                 firewall-cmd --permanent --zone=${default_zone} --add-port=${port}/tcp
-                if [ ${port} == "53" ]; then
+                if [ ${port} == "${dnsport}" ]; then
+                    # DNS端口需要同时支持TCP和UDP（解决香港等地区UDP限制问题）
                     firewall-cmd --permanent --zone=${default_zone} --add-port=${port}/udp
+                    echo -e "[${green}Info${plain}] DNS port ${green}${port}${plain} configured for TCP+UDP."
                 fi
                 firewall-cmd --reload
             done
@@ -262,7 +266,7 @@ compile_dnsmasq(){
 }
 
 install_dnsmasq(){
-    netstat -a -n -p | grep LISTEN | grep -P "\d+\.\d+\.\d+\.\d+:53\s+" > /dev/null && echo -e "[${red}Error${plain}] required port 53 already in use\n" && exit 1
+    netstat -a -n -p | grep LISTEN | grep -P "\d+\.\d+\.\d+\.\d+:${dnsport}\s+" > /dev/null && echo -e "[${red}Error${plain}] required port ${dnsport} already in use\n" && exit 1
     echo "安装Dnsmasq..."
     if check_sys packageManager yum; then
         error_detect_depends "yum -y install dnsmasq"
@@ -285,6 +289,12 @@ install_dnsmasq(){
         | tee -a /etc/dnsmasq.d/custom_netflix.conf > /dev/null 2>&1
     done
     [ "$(grep -x -E "(conf-dir=/etc/dnsmasq.d|conf-dir=/etc/dnsmasq.d,.bak|conf-dir=/etc/dnsmasq.d/,\*.conf|conf-dir=/etc/dnsmasq.d,.rpmnew,.rpmsave,.rpmorig)" /etc/dnsmasq.conf)" ] || echo -e "\nconf-dir=/etc/dnsmasq.d" >> /etc/dnsmasq.conf
+    # 配置DNS监听端口
+    if [ ${dnsport} -ne 53 ]; then
+        sed -i '/^port=/d' /etc/dnsmasq.conf
+        echo "port=${dnsport}" >> /etc/dnsmasq.conf
+        echo -e "[${yellow}Warning${plain}] 使用非标准端口 ${dnsport}，客户端需使用特殊配置才能连接"
+    fi
     echo "启动 Dnsmasq 服务..."
     if check_sys packageManager yum; then
         if centosversion 6; then
@@ -463,23 +473,82 @@ help(){
 }
 
 install_all(){
-    ports="53 80 443"
     publicip=$(get_ip)
     hello
     ready_install
+    # 端口配置
+    inputportcount=1
+    echo -e "请输入Dnsmasq监听端口"
+    read -e -p "(默认: 53，回车跳过): " dnsport
+    while true; do
+        if [ "${inputportcount}" == 3 ]; then
+            echo -e "[${red}Error:${plain}] 端口输入错误次数过多，请重新执行脚本。"
+            exit 1
+        fi
+        if [ -z ${dnsport} ]; then
+            dnsport=53
+            break
+        else
+            if [ ${dnsport} -ge 1 ] && [ ${dnsport} -le 65535 ] 2>/dev/null; then
+                if [ ${dnsport} -ne 53 ]; then
+                    echo -e "[${yellow}Warning${plain}] 使用非标准端口 ${dnsport}"
+                    echo -e "[${yellow}Warning${plain}] 客户端测试方法: dig @SERVER_IP -p ${dnsport} netflix.com"
+                fi
+                break
+            else
+                echo -e "[${red}Error:${plain}] 端口范围必须在 1-65535 之间"
+                read -e -p "请重新输入端口 (默认: 53): " dnsport
+            fi
+        fi
+        inputportcount=`expr ${inputportcount} + 1`
+    done
+    ports="${dnsport} 80 443"
     install_dnsmasq
     install_sniproxy
     echo ""
     echo -e "${yellow}Dnsmasq + SNI Proxy 已完成安装！${plain}"
     echo ""
-    echo -e "${yellow}将您的DNS更改为 $(get_ip) 即可以观看Netflix节目了。${plain}"
+    if [ ${dnsport} -eq 53 ]; then
+        echo -e "${yellow}将您的DNS更改为 $(get_ip) 即可以观看Netflix节目了。${plain}"
+        echo -e "${green}已启用TCP+UDP双协议支持，适用于香港等UDP受限地区。${plain}"
+    else
+        echo -e "${yellow}DNS服务运行在端口: ${dnsport}${plain}"
+        echo -e "${yellow}测试命令: dig @$(get_ip) -p ${dnsport} netflix.com${plain}"
+        echo -e "${yellow}客户端需要配置支持自定义端口的DNS工具（如dnscrypt-proxy）${plain}"
+    fi
     echo ""
 }
 
 only_dnsmasq(){
-    ports="53"
     hello
     ready_install
+    # 端口配置
+    inputportcount=1
+    echo -e "请输入Dnsmasq监听端口"
+    read -e -p "(默认: 53，回车跳过): " dnsport
+    while true; do
+        if [ "${inputportcount}" == 3 ]; then
+            echo -e "[${red}Error:${plain}] 端口输入错误次数过多，请重新执行脚本。"
+            exit 1
+        fi
+        if [ -z ${dnsport} ]; then
+            dnsport=53
+            break
+        else
+            if [ ${dnsport} -ge 1 ] && [ ${dnsport} -le 65535 ] 2>/dev/null; then
+                if [ ${dnsport} -ne 53 ]; then
+                    echo -e "[${yellow}Warning${plain}] 使用非标准端口 ${dnsport}"
+                    echo -e "[${yellow}Warning${plain}] 客户端测试方法: dig @SERVER_IP -p ${dnsport} netflix.com"
+                fi
+                break
+            else
+                echo -e "[${red}Error:${plain}] 端口范围必须在 1-65535 之间"
+                read -e -p "请重新输入端口 (默认: 53): " dnsport
+            fi
+        fi
+        inputportcount=`expr ${inputportcount} + 1`
+    done
+    ports="${dnsport}"
     inputipcount=1
     echo -e "请输入SNIProxy服务器的IP地址"
     read -e -p "(为空则自动获取公网IP): " inputip
@@ -507,7 +576,14 @@ only_dnsmasq(){
     echo ""
     echo -e "${yellow}Dnsmasq 已完成安装！${plain}"
     echo ""
-    echo -e "${yellow}将您的DNS更改为 $(get_ip) 即可以观看Netflix节目了。${plain}"
+    if [ ${dnsport} -eq 53 ]; then
+        echo -e "${yellow}将您的DNS更改为 $(get_ip) 即可以观看Netflix节目了。${plain}"
+        echo -e "${green}已启用TCP+UDP双协议支持，适用于香港等UDP受限地区。${plain}"
+    else
+        echo -e "${yellow}DNS服务运行在端口: ${dnsport}${plain}"
+        echo -e "${yellow}测试命令: dig @$(get_ip) -p ${dnsport} netflix.com${plain}"
+        echo -e "${yellow}客户端需要配置支持自定义端口的DNS工具（如dnscrypt-proxy）${plain}"
+    fi
     echo ""
 }
 
