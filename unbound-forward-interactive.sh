@@ -139,7 +139,7 @@ if ! systemctl is-active --quiet unbound; then
 fi
 
 # 设置 resolv.conf
-echo "nameserver 127.0.0.1" > /etc/resolv.conf
+echo "nameserver  127.0.0.1" > /etc/resolv.conf
 echo "options edns0" >> /etc/resolv.conf
 echo "🔧 已设置 /etc/resolv.conf 使用 127.0.0.1"
 
