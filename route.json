@@ -1,0 +1,76 @@
+{
+    "domainStrategy": "IPIfNonMatch",
+    "rules": [
+        {
+            "outboundTag": "block",
+            "ip": [
+                "geoip:private",
+                "127.0.0.1/32",
+                "10.0.0.0/8",
+                "fc00::/7",
+                "fe80::/10",
+                "172.16.0.0/12"
+            ]
+        },
+        {
+            "outboundTag": "block",
+            "protocol": [
+                "bittorrent"
+            ]
+        },
+        {
+            "outboundTag": "block",
+            "domain": [
+                "regexp:(api|ps|sv|offnavi|newvector|ulog\\.imap|newloc)(\\.map|)\\.(baidu|n\\.shifen)\\.com",
+                "regexp:(.+\\.|^)(360|so)\\.(cn|com)",
+                "regexp:(Subject|HELO|SMTP)",
+                "regexp:(torrent|\\.torrent|peer_id=|info_hash|get_peers|find_node|BitTorrent|announce_peer|announce\\.php\\?passkey=)",
+                "regexp:(^\\.@)(guerrillamail|guerrillamailblock|sharklasers|grr|pokemail|spam4|bccto|chacuo|027168)\\.(info|biz|com|de|net|org|me|la)",
+                "regexp:(.?)(xunlei|sandai|Thunder|XLLiveUD)(.)",
+                "regexp:(..||)(dafahao|mingjinglive|botanwang|minghui|dongtaiwang|falunaz|epochtimes|ntdtv|falundafa|falungong|wujieliulan|zhengjian)\\.(org|com|net)",
+                "regexp:(ed2k|\\.torrent|peer_id=|announce|info_hash|get_peers|find_node|BitTorrent|announce_peer|announce\\.php\\?passkey=|magnet:|xunlei|sandai|Thunder|XLLiveUD|bt_key)",
+                "regexp:(.*\\.||)(guanjia\\.qq\\.com|qqpcmgr|QQPCMGR)",
+                "regexp:(.*\\.||)(rising|kingsoft|duba|xindubawukong|jinshanduba)\\.(com|net|org)",
+                "regexp:(.*\\.||)(netvigator|torproject)\\.(com|cn|net|org)",
+                "regexp:(..||)(visa|mycard|mastercard|gash|beanfun|bank)\\.",
+                "regexp:(.*\\.||)(gov|12377|12315|talk\\.news\\.pts\\.org|creaders|zhuichaguoji|efcc\\.org|cyberpolice|aboluowang|tuidang|epochtimes|zhengjian|110\\.qq|mingjingnews|inmediahk|xinsheng|breakgfw|chengmingmag|jinpianwang|qi-gong|mhradio|edoors|renminbao|soundofhope|xizang-zhiye|bannedbook|ntdtv|12321|secretchina|dajiyuan|boxun|chinadigitaltimes|dwnews|huaglad|oneplusnews|epochweekly|cn\\.rfi|citizenpowerforchina|freetibet|independent|bloomberg|dalailama|nextdigital|appledaily|voanews|voachinese|voacantonese|nytimes|rfa\\.org|bbc\\.com|theinitium\\.com|tibet\\.net|jw\\.org|bannedbook\\.org|dw\\.com|storm\\.mg|yam\\.com|chinadigitaltimes|ltn\\.com\\.tw|mpweekly\\.com|cup\\.com\\.hk|thenewslens\\.com|inside\\.com\\.tw|everylittled\\.com|cool3c\\.com|taketla\\.zaiko\\.io|news\\.agentm\\.tw|sportsv\\.net|research\\.tnlmedia\\.com|ad2iction\\.com|viad\\.com\\.tw|tnlmedia\\.com|becomingaces\\.com|pincong\\.rocks|flipboard\\.com|soundofhope\\.org|wenxuecity\\.com|aboluowang\\.com|2047\\.name|shu\\.best|shenyunperformingarts\\.org|bbc\\.co\\.uk|cirosantilli|wsj\\.com|rfi\\.fr|chinapress\\.com\\.my|hancel\\.org|miraheze\\.org|zhuichaguoji\\.org|fawanghuihui\\.org|hopto\\.org|amnesty\\.org|hrw\\.org|irmct\\.org|yibaochina\\.com|roc-taiwan\\.org|upmedia\\.mg|ydn\\.com\\.tw|udn\\.com|theaustralian\\.com\\.au|voacantonese\\.com|voanews\\.com|bitterwinter\\.org|christianstudy\\.com|learnfalungong\\.com|usembassy-china\\.org\\.cn|master-li\\.qi-gong\\.me|zhengwunet\\.org|modernchinastudies\\.org|ninecommentaries\\.com|shenyuncreations\\.com|tgcchinese\\.org|freedomhouse\\.org|abc\\.net\\.au|funmart\\.beanfun\\.com|gashpoint\\.com|edu|alipay\\.com|tenpay\\.com|unionpay\\.com|yunshanfu\\.cn|icbc\\.com\\.cn|ccb\\.com|boc\\.cn|bankcomm\\.com|abchina\\.com|cmbchina\\.com|psbc\\.com|cebbank\\.com|cmbc\\.com\\.cn|pingan\\.com|spdb\\.com\\.cn|bank\\.ecitic\\.com|cib\\.com\\.cn|hxb\\.com\\.cn|cgbchina\\.com\\.cn|jcbcard\\.cn|pbccrc\\.org\\.cn|adbc\\.com\\.cn|gamepay\\.com\\.tw|10099\\.com\\.cn|10010\\.com|189\\.cn|10086\\.cn|1688\\.com|jd\\.com|taobao\\.com|pinduoduo\\.com|cctv\\.com|cntv\\.cn|tianya\\.cn|tieba\\.baidu\\.com|xuexi\\.cn|rednet\\.cn|weibo\\.com|zhihu|douban\\.com|tmall\\.com|vip\\.com|toutiao\\.com|zijieapi\\.com|xiaomi\\.cn|oppo\\.cn|oneplusbbs\\.com|bbs\\.vivo\\.com\\.cn|club\\.lenovo\\.com\\.cn|bbs\\.iqoo\\.com|realmebbs\\.com|rogbbs\\.asus\\.com\\.cn|bbs\\.myzte\\.cn|club\\.huawei\\.com|bbs\\.meizu\\.cn|xiaohongshu\\.com|coolapk\\.com|bbsuc\\.cn|tangdou\\.com|oneniceapp\\.com|izuiyou\\.com|pipigx\\.com|ixiaochuan\\.cn|duitang\\.com|renren\\.com)",
+                "regexp:(.*\\.||)(miaozhen|cnzz|talkingdata|umeng)\\.(cn|com)",
+                "regexp:(.*\\.||)(mycard)\\.(com|tw)",
+                "regexp:(.*\\.||)(gash)\\.(com|tw)",
+                "regexp:(\\.bank\\.)",
+                "regexp:(.*\\.||)(pincong)\\.(rocks)",
+                "regexp:(.*\\.||)(taobao|jd|pinduoduo|cctv|cntv|tianya|weibo|zhihu|douban|tmall|vip|toutiao)\\.(com|cn)",
+                "regexp:(.*\\.||)(laomoe|jiyou|ssss|lolicp|vv1234|0z|4321q|868123|ksweb|mm126)\\.(com|cloud|fun|cn|gs|xyz|cc)",
+                "regexp:(flows|miaoko)\\.(pages)\\.(dev)",
+                "regexp:(falundafa|minghui|epochtimes|ntdtv|voachinese|appledaily|nextdigital|dalailama|nytimes|bloomberg|independent|freetibet|citizenpowerfor|rfa\\.org|bbc\\.com|theinitium\\.com|tibet\\.net|jw\\.org|bannedbook\\.org|dw\\.com|storm\\.mg|yam\\.com|chinadigitaltimes|ltn\\.com\\.tw|mpweekly\\.com|cup\\.com\\.hk|thenewslens\\.com|inside\\.com\\.tw|everylittled\\.com|cool3c\\.com|taketla\\.zaiko\\.io|news\\.agentm\\.tw|sportsv\\.net|research\\.tnlmedia\\.com|ad2iction\\.com|viad\\.com\\.tw|tnlmedia\\.com|becomingaces\\.com|pincong\\.rocks|flipboard\\.com|soundofhope\\.org|wenxuecity\\.com|aboluowang\\.com|2047\\.name|shu\\.best|shenyunperformingarts\\.org|bbc\\.co\\.uk|cirosantilli|wsj\\.com|rfi\\.fr|chinapress\\.com\\.my|hancel\\.org|miraheze\\.org|zhuichaguoji\\.org|fawanghuihui\\.org|hopto\\.org|amnesty\\.org|hrw\\.org|irmct\\.org|zhengjian\\.org|wujieliulan\\.com|dongtaiwang\\.com|ultrasurf\\.us|yibaochina\\.com|roc-taiwan\\.org|creaders\\.net|upmedia\\.mg|ydn\\.com\\.tw|udn\\.com|theaustralian\\.com\\.au|rfa\\.org|voacantonese\\.com|voanews\\.com|bitterwinter\\.org|christianstudy\\.com|learnfalungong\\.com|usembassy-china\\.org\\.cn|master-li\\.qi-gong\\.me|zhengwunet\\.org|modernchinastudies\\.org|ninecommentaries\\.com|dafahao\\.com|shenyuncreations\\.com|tgcchinese\\.org|botanwang\\.com|falungong|freedomhouse\\.org|abc\\.net\\.au|funmart\\.beanfun\\.com|gashpoint\\.com|edu|alipay\\.com|tenpay\\.com|unionpay\\.com|yunshanfu\\.cn|icbc\\.com\\.cn|ccb\\.com|boc\\.cn|bankcomm\\.com|abchina\\.com|cmbchina\\.com|psbc\\.com|cebbank\\.com|cmbc\\.com\\.cn|pingan\\.com|spdb\\.com\\.cn|bank\\.ecitic\\.com|cib\\.com\\.cn|hxb\\.com\\.cn|cgbchina\\.com\\.cn|jcbcard\\.cn|pbccrc\\.org\\.cn|adbc\\.com\\.cn|gamepay\\.com\\.tw|10099\\.com\\.cn|10010\\.com|189\\.cn|10086\\.cn|1688\\.com|jd\\.com|taobao\\.com|pinduoduo\\.com|cctv\\.com|cntv\\.cn|tianya\\.cn|tieba\\.baidu\\.com|xuexi\\.cn|rednet\\.cn|weibo\\.com|zhihu|douban\\.com|tmall\\.com|vip\\.com|toutiao\\.com|zijieapi\\.com|xiaomi\\.cn|oppo\\.cn|oneplusbbs\\.com|bbs\\.vivo\\.com\\.cn|club\\.lenovo\\.com\\.cn|bbs\\.iqoo\\.com|realmebbs\\.com|rogbbs\\.asus\\.com\\.cn|bbs\\.myzte\\.cn|club\\.huawei\\.com|bbs\\.meizu\\.cn|xiaohongshu\\.com|coolapk\\.com|bbsuc\\.cn|tangdou\\.com|oneniceapp\\.com|izuiyou\\.com|pipigx\\.com|ixiaochuan\\.cn|duitang\\.com|renren\\.com)",
+                "regexp:(.*\\.||)(antpool|poolin|f2pool|viabtc|btc|emcd|slushpool|nicehash|ethermine|flexpool|nanopool|2miners|hiveon|miningpoolhub|crazypool|k1pool|woolypooly|coinfoundry|prohashing|solo\\.ckpool|braiins)\\.(com|io|org)"
+            ]
+        },
+        {
+            "type": "field",
+            "outboundTag": "IPv6_out",
+            "domain": [
+                "byr.pt"
+            ]
+        },
+        {
+            "type": "field",
+            "outboundTag": "unlock",
+            "domain": [
+                "geosite:netflix",
+                "geosite:disney",
+                "geosite:tiktok",
+                "geosite:hulu",
+                "geosite:bahamut",
+                "geosite:hbo",
+                "geosite:abema",
+                "geosite:dmm"
+            ]
+        },
+        {
+            "type": "field",
+            "outboundTag": "IPv4_out",
+            "network": "tcp,udp"
+        }
+    ]
+}
