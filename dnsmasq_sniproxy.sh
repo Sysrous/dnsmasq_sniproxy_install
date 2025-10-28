@@ -344,7 +344,7 @@ install_dnsmasq(){
 }
 
 install_sniproxy(){
-    for aport in 40080 40443; do
+    for aport in 80 443; do
         netstat -a -n -p | grep LISTEN | grep -P "\d+\.\d+\.\d+\.\d+:${aport}\s+" > /dev/null && echo -e "[${red}Error${plain}] required port ${aport} already in use\n" && exit 1
     done
     install_dependencies
@@ -527,7 +527,7 @@ install_all(){
         fi
         inputportcount=`expr ${inputportcount} + 1`
     done
-    ports="${dnsport} 40080 40443"
+    ports="${dnsport} 80 443"
     install_dnsmasq
     install_sniproxy
     echo ""
@@ -613,7 +613,7 @@ only_dnsmasq(){
 }
 
 only_sniproxy(){
-    ports="40080 40443"
+    ports="80 443"
     hello
     ready_install
     install_sniproxy
@@ -635,6 +635,7 @@ restore_dns_config(){
 # 由dnsmasq卸载脚本自动生成
 nameserver 1.1.1.1
 nameserver 8.8.8.8
+DNSStubListener=no
 EOF
     echo -e "[${green}Info${plain}] 已写入DNS配置 (1.1.1.1, 8.8.8.8)"
     
