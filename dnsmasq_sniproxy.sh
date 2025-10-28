@@ -265,9 +265,34 @@ compile_dnsmasq(){
     fi
 }
 
+backup_dns_config(){
+    # 备份DNS配置
+    if [ -f /etc/resolv.conf ]; then
+        if [ ! -f /etc/resolv.conf.backup_before_dnsmasq ]; then
+            # 解除只读锁定（如果存在）
+            chattr -i /etc/resolv.conf 2>/dev/null || true
+            cp /etc/resolv.conf /etc/resolv.conf.backup_before_dnsmasq
+            echo -e "[${green}Info${plain}] DNS配置已备份到 /etc/resolv.conf.backup_before_dnsmasq"
+        fi
+    fi
+    
+    # 记录systemd-resolved和NetworkManager的状态
+    if systemctl is-active --quiet systemd-resolved 2>/dev/null; then
+        echo "systemd-resolved" > /tmp/.dnsmasq_services_status
+        echo -e "[${green}Info${plain}] 检测到 systemd-resolved 正在运行，状态已记录"
+    fi
+    if systemctl is-active --quiet NetworkManager 2>/dev/null; then
+        echo "NetworkManager" >> /tmp/.dnsmasq_services_status
+        echo -e "[${green}Info${plain}] 检测到 NetworkManager 正在运行，状态已记录"
+    fi
+}
+
 install_dnsmasq(){
     netstat -a -n -p | grep LISTEN | grep -P "\d+\.\d+\.\d+\.\d+:${dnsport}\s+" > /dev/null && echo -e "[${red}Error${plain}] required port ${dnsport} already in use\n" && exit 1
     echo "安装Dnsmasq..."
+    
+    # 备份DNS配置
+    backup_dns_config
     if check_sys packageManager yum; then
         error_detect_depends "yum -y install dnsmasq"
         if centosversion 6; then
@@ -599,6 +624,44 @@ only_sniproxy(){
     echo ""
 }
 
+restore_dns_config(){
+    echo -e "[${green}Info${plain}] 恢复DNS配置..."
+    
+    # 临时解除锁定以便写入
+    chattr -i /etc/resolv.conf 2>/dev/null || true
+    
+    # 直接写入DNS配置
+    cat > /etc/resolv.conf <<EOF
+# 由dnsmasq卸载脚本自动生成
+nameserver 1.1.1.1
+nameserver 8.8.8.8
+EOF
+    echo -e "[${green}Info${plain}] 已写入DNS配置 (1.1.1.1, 8.8.8.8)"
+    
+    # 重新锁定文件，防止VPS商家系统覆写
+    chattr +i /etc/resolv.conf 2>/dev/null || true
+    echo -e "[${green}Info${plain}] 已锁定 /etc/resolv.conf，防止被自动覆写"
+    
+    # 禁用可能覆写DNS的服务
+    if [ -f /tmp/.dnsmasq_services_status ]; then
+        if grep -q "systemd-resolved" /tmp/.dnsmasq_services_status; then
+            echo -e "[${yellow}Info${plain}] 保持 systemd-resolved 禁用状态，避免DNS覆写"
+        fi
+        if grep -q "NetworkManager" /tmp/.dnsmasq_services_status; then
+            echo -e "[${yellow}Info${plain}] 保持 NetworkManager 禁用状态，避免DNS覆写"
+        fi
+        rm -f /tmp/.dnsmasq_services_status
+    fi
+    
+    # 配置cloud-init不要覆写DNS
+    if [ -f /etc/cloud/cloud.cfg ]; then
+        sed -i 's/^manage_etc_hosts.*/manage_etc_hosts: false/' /etc/cloud/cloud.cfg 2>/dev/null || true
+        echo -e "[${green}Info${plain}] 已配置 cloud-init 不管理 /etc/hosts"
+    fi
+    
+    echo -e "[${green}Info${plain}] DNS配置恢复完成并已锁定保护"
+}
+
 undnsmasq(){
     echo -e "[${green}Info${plain}] Stoping dnsmasq services."
     if check_sys packageManager yum; then
@@ -627,6 +690,10 @@ undnsmasq(){
         fi
     fi
     rm -rf /etc/dnsmasq.d/custom_netflix.conf
+    
+    # 恢复DNS配置
+    restore_dns_config
+    
     echo -e "[${green}Info${plain}] services uninstall dnsmasq complete..."
 }
 
