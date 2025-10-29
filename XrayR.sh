@@ -5,71 +5,51 @@ green='\033[0;32m'
 yellow='\033[0;33m'
 plain='\033[0m'
 
-# check root
+# 检查root权限
 [[ $EUID -ne 0 ]] && echo -e "${red}错误: ${plain} 必须使用root用户运行此脚本！\n" && exit 1
 
-# 0: running, 1: not running, 2: not installed
-check_status() {
-    if [[ ! -f /etc/systemd/system/XrayR.service ]]; then
-        return 2
-    fi
-    temp=$(systemctl status XrayR | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
-    if [[ x"${temp}" == x"running" ]]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-check_enabled() {
-    temp=$(systemctl is-enabled XrayR)
-    if [[ x"${temp}" == x"enabled" ]]; then
-        return 0
-    else
-        return 1;
-    fi
-}
-
+# 检查是否已安装
 check_install() {
     if [[ ! -f /usr/local/XrayR/XrayR ]]; then
-        echo -e "${red}请先安装XrayR${plain}"
+        echo -e "${red}错误: XrayR 后端未安装或路径不正确！${plain}"
         exit 1
     fi
-    return 0
 }
 
+# 获取状态
 show_status() {
-    check_status
-    case $? in
-        0)
-            echo -e "XrayR状态: ${green}已运行${plain}"
-            ;;
-        1)
-            echo -e "XrayR状态: ${yellow}未运行${plain}"
-            ;;
-        2)
-            echo -e "XrayR状态: ${red}未安装${plain}"
-    esac
+    if [[ ! -f /etc/systemd/system/XrayR.service ]]; then
+        echo -e "XrayR状态: ${red}未安装为服务${plain}"
+        return
+    fi
+    
+    status=$(systemctl is-active XrayR)
+    if [[ "${status}" == "active" ]]; then
+        echo -e "XrayR状态: ${green}已运行${plain}"
+    else
+        echo -e "XrayR状态: ${yellow}未运行${plain}"
+    fi
 }
 
+# 功能函数
 start() {
     check_install
     systemctl start XrayR
-    sleep 1
+    echo "正在启动..." && sleep 1
     show_status
 }
 
 stop() {
     check_install
     systemctl stop XrayR
-    sleep 1
+    echo "正在停止..." && sleep 1
     show_status
 }
 
 restart() {
     check_install
     systemctl restart XrayR
-    sleep 1
+    echo "正在重启..." && sleep 1
     show_status
 }
 
@@ -89,19 +69,20 @@ update() {
 }
 
 uninstall() {
-    check_install
     systemctl stop XrayR
     systemctl disable XrayR
-    rm /etc/systemd/system/XrayR.service -f
+    rm -f /etc/systemd/system/XrayR.service
     systemctl daemon-reload
-    rm /etc/XrayR/ -rf
-    rm /usr/local/XrayR/ -rf
-    rm /usr/bin/XrayR -f
-    rm /usr/bin/xrayr -f
-    echo -e "${green}卸载成功！${plain}"
+    rm -rf /etc/XrayR
+    rm -rf /usr/local/XrayR
+    rm -f /usr/bin/XrayR
+    rm -f /usr/bin/xrayr
+    echo -e "${green}XrayR 已成功卸载！${plain}"
 }
 
+# 主菜单
 show_menu() {
+    clear
     echo -e "
   ${green}XrayR 后端管理脚本${plain}
 ---
@@ -109,10 +90,10 @@ show_menu() {
   ${green}2.${plain} 停止 XrayR
   ${green}3.${plain} 重启 XrayR
 ---
-  ${green}4.${plain} 修改配置
+  ${green}4.${plain} 修改配置 (改完自动重启)
   ${green}5.${plain} 查看日志
 ---
-  ${green}6.${plain} 更新 XrayR
+  ${green}6.${plain} 更新 XrayR (重新执行安装脚本)
   ${green}7.${plain} 卸载 XrayR
 ---
   ${green}0.${plain} 退出脚本
@@ -129,10 +110,11 @@ show_menu() {
         6) update ;;
         7) uninstall ;;
         0) exit 0 ;;
-        *) echo -e "${red}请输入正确的数字 [0-7]${plain}" ;;
+        *) echo -e "${red}请输入正确的数字 [0-7]${plain}" && sleep 2 && show_menu ;;
     esac
 }
 
+# 命令模式
 if [[ $# > 0 ]]; then
     case $1 in
         "start") start ;;
@@ -142,7 +124,7 @@ if [[ $# > 0 ]]; then
         "config") config ;;
         "update") update ;;
         "uninstall") uninstall ;;
-        *) echo "无效命令" ;;
+        *) echo "无效命令: $1" ;;
     esac
 else
     show_menu
