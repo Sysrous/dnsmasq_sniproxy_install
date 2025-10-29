@@ -1,0 +1,12 @@
+{
+  "servers": [
+    "1.1.1.1",
+    "8.8.8.8",
+    {
+      "address": "23.146.72.33",
+      "port": 10053,
+      "domains": ["geosite:netflix","geosite:hulu","geosite:hbo","geosite:disney","openai.com","chatgpt.com","azureedge.net","sentry.io","azurefd.net","intercomcdn.com","intercom.io","identrust.com","ai.com","oaistatic.com","oaiusercontent.com","control.kochava.com","d151l6v8er5bdm.cloudfront.net","d1sgwhnao7452x.cloudfront.net","dazn-api.com","dazn.com","dazndn.com","dc2-vodhls-perform.secure.footprint.net","dca-ll-livedazn-dznlivejp.s.llnwi.net","dcalivedazn.akamaized.net","dcblivedazn.akamaized.net","indazn.com","indaznlab.com","intercom.io","logx.optimizely.com","s.yimg.jp","sentry.io"]
+    }
+  ],
+  "tag": "dns_inbound"
+}
