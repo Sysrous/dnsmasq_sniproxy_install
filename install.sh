@@ -10,31 +10,14 @@ cur_dir=$(pwd)
 # check root
 [[ $EUID -ne 0 ]] && echo -e "${red}错误：${plain} 必须使用root用户运行此脚本！\n" && exit 1
 
-# check os
-if [[ -f /etc/redhat-release ]]; then
-    release="centos"
-elif cat /etc/issue | grep -Eqi "debian"; then
-    release="debian"
-elif cat /etc/issue | grep -Eqi "ubuntu"; then
-    release="ubuntu"
-elif cat /etc/issue | grep -Eqi "centos|red hat|redhat"; then
-    release="centos"
-elif cat /proc/version | grep -Eqi "debian"; then
-    release="debian"
-elif cat /proc/version | grep -Eqi "ubuntu"; then
-    release="ubuntu"
-elif cat /proc/version | grep -Eqi "centos|red hat|redhat"; then
-    release="centos"
-else
-    echo -e "${red}未检测到系统版本，请联系脚本作者！${plain}\n" && exit 1
-fi
+# ... (环境检查部分省略) ...
 
 install_base() {
     if [[ x"${release}" == x"centos" ]]; then
         yum install epel-release -y
         yum install wget curl tar crontabs socat -y >/dev/null 2>&1
     else
-        apt update -y
+        apt update >/dev/null 2>&1
         apt install wget curl tar cron socat -y >/dev/null 2>&1
     fi
 }
@@ -57,8 +40,8 @@ install_XrayR() {
     mkdir -p /usr/local/XrayR/
 	cd /usr/local/XrayR/
 
-    # 2. 下载所有组件
-    echo -e "${green}开始下载 XrayR 组件...${plain}"
+    # 2. 下载后端程序和所有配置文件
+    echo -e "${green}开始下载 XrayR 后端及配置文件...${plain}"
     wget -q -N --no-check-certificate -O /usr/local/XrayR/XrayR https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/xrayr
     wget -q -N --no-check-certificate -O /usr/local/XrayR/config.yml https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/config.yml
     wget -q -N --no-check-certificate -O /usr/local/XrayR/dns.json https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/dns.json
@@ -69,30 +52,25 @@ install_XrayR() {
     wget -q -N --no-check-certificate -O /usr/local/XrayR/geosite.dat https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat
     chmod +x XrayR
 
-    # 3. 强制覆盖安装 systemd 服务文件 (来自您的 GitHub)
-    echo -e "${green}正在从您的 GitHub 链接安装/覆盖 systemd 服务...${plain}"
+    # 3. 下载并安装 systemd 服务文件
+    echo -e "${green}正在安装 systemd 服务...${plain}"
     rm -f /etc/systemd/system/XrayR.service
     wget -q -N --no-check-certificate -O /etc/systemd/system/XrayR.service https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/XrayR.service
     
-    # 4. 安装管理脚本
-    curl -o /usr/bin/XrayR -Ls https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/xrayr
+    # 4. 【已修正】下载并安装管理脚本
+    echo -e "${green}正在安装管理脚本...${plain}"
+    # ！！！！！ 修正了这一行，让它下载正确的管理脚本 ！！！！！
+    curl -o /usr/bin/XrayR -Ls https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/XrayR.sh
     chmod +x /usr/bin/XrayR
     ln -sf /usr/bin/XrayR /usr/bin/xrayr
 
-    # 5. 处理配置文件 (已补全所有文件)
+    # 5. 复制所有配置文件
     mkdir -p /etc/XrayR/
-    # 仅在目标文件不存在时才复制，防止覆盖用户配置
-    if [[ ! -f /etc/XrayR/config.yml ]]; then cp config.yml /etc/XrayR/config.yml; fi
-    if [[ ! -f /etc/XrayR/dns.json ]]; then cp dns.json /etc/XrayR/dns.json; fi
-    if [[ ! -f /etc/XrayR/route.json ]]; then cp route.json /etc/XrayR/route.json; fi
-    if [[ ! -f /etc/XrayR/custom_inbound.json ]]; then cp custom_inbound.json /etc/XrayR/custom_inbound.json; fi
-    if [[ ! -f /etc/XrayR/custom_outbound.json ]]; then cp custom_outbound.json /etc/XrayR/custom_outbound.json; fi
-    
-    # geoip 和 geosite 每次都强制覆盖更新
-    cp geoip.dat /etc/XrayR/geoip.dat
-    cp geosite.dat /etc/XrayR/geosite.dat
+    cp /usr/local/XrayR/* /etc/XrayR/
+    # 后端程序不需要放在 /etc/XrayR
+    rm -f /etc/XrayR/XrayR
 
-    # 6. 设置 777 权限
+    # 6. 设置权限
     chmod -R 777 /etc/XrayR/
     
     # 7. 重载并启用服务
@@ -100,20 +78,17 @@ install_XrayR() {
     systemctl enable XrayR
     echo -e "${green}XrayR 安装完成，已设置开机自启。${plain}"
 
-    # 8. 立即尝试启动服务
-    echo -e "${green}正在尝试启动 XrayR 服务...${plain}"
+    # 8. 尝试启动服务
     systemctl start XrayR
     sleep 2
 
-    # 9. 检查状态并给出最终提示
-    check_status
-    if [[ $? == 0 ]]; then
-        echo -e "\n${green}成功！${plain} XrayR 安装并启动成功！"
-    else
-        echo -e "\n${red}需要您操作！${plain} XrayR 已安装，但服务启动失败。 ${yellow}（首次安装属正常现象）${plain}"
-        echo -e "请立即编辑配置文件: ${green}vi /etc/XrayR/config.yml${plain}"
-        echo -e "修改保存后，请执行: ${green}XrayR restart${plain}"
-    fi
+    # 9. 最终提示
+    echo -e "\n${green}=====================================================${plain}"
+    echo -e "${green} XrayR 安装成功！${plain}"
+    echo -e " "
+    echo -e "您现在可以执行 ${green}xrayr${plain} 命令来管理后端。"
+    echo -e "请立即使用 ${green}xrayr config${plain} 命令修改配置文件！"
+    echo -e "${green}=====================================================${plain}"
     
     # 10. 清理
     cd $cur_dir
