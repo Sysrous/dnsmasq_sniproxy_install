@@ -156,9 +156,9 @@ install_XrayR() {
     cp geoip.dat /etc/XrayR/geoip.dat
     cp geosite.dat /etc/XrayR/geosite.dat
 
-    # 6. 【新增】设置配置文件权限
-    chmod -R 644 /etc/XrayR/
-    echo -e "${green}已为 /etc/XrayR/ 设置标准读取权限${plain}"
+    # 6. 设置您要求的 777 权限
+    chmod -R 777 /etc/XrayR/
+    echo -e "${yellow}警告：已根据您的要求为 /etc/XrayR/ 设置了 777 权限，请注意安全风险。${plain}"
 
     # 7. 重载服务并设置自启
     systemctl daemon-reload
