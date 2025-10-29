@@ -63,7 +63,6 @@ install_XrayR() {
     wget -q -N --no-check-certificate -O /usr/local/XrayR/config.yml https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/config.yml
     wget -q -N --no-check-certificate -O /usr/local/XrayR/dns.json https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/dns.json
     wget -q -N --no-check-certificate -O /usr/local/XrayR/route.json https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/route.json
-    # 【补全】下载 custom_inbound.json 和 custom_outbound.json
     wget -q -N --no-check-certificate -O /usr/local/XrayR/custom_inbound.json https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/custom_inbound.json
     wget -q -N --no-check-certificate -O /usr/local/XrayR/custom_outbound.json https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/custom_outbound.json
     wget -q -N --no-check-certificate -O /usr/local/XrayR/geoip.dat https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat
@@ -86,7 +85,6 @@ install_XrayR() {
     if [[ ! -f /etc/XrayR/config.yml ]]; then cp config.yml /etc/XrayR/config.yml; fi
     if [[ ! -f /etc/XrayR/dns.json ]]; then cp dns.json /etc/XrayR/dns.json; fi
     if [[ ! -f /etc/XrayR/route.json ]]; then cp route.json /etc/XrayR/route.json; fi
-    # 【补全】复制 custom_inbound.json 和 custom_outbound.json
     if [[ ! -f /etc/XrayR/custom_inbound.json ]]; then cp custom_inbound.json /etc/XrayR/custom_inbound.json; fi
     if [[ ! -f /etc/XrayR/custom_outbound.json ]]; then cp custom_outbound.json /etc/XrayR/custom_outbound.json; fi
     
