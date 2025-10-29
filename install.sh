@@ -10,27 +10,12 @@ cur_dir=$(pwd)
 # check root
 [[ $EUID -ne 0 ]] && echo -e "${red}错误：${plain} 必须使用root用户运行此脚本！\n" && exit 1
 
-# ... (环境检查部分省略) ...
-
 install_base() {
-    if [[ x"${release}" == x"centos" ]]; then
-        yum install epel-release -y
-        yum install wget curl tar crontabs socat -y >/dev/null 2>&1
+    if command -v yum >/dev/null 2>&1; then
+        yum install wget curl tar socat -y >/dev/null 2>&1
     else
         apt update >/dev/null 2>&1
-        apt install wget curl tar cron socat -y >/dev/null 2>&1
-    fi
-}
-
-check_status() {
-    if [[ ! -f /etc/systemd/system/XrayR.service ]]; then
-        return 2
-    fi
-    temp=$(systemctl status XrayR | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
-    if [[ x"${temp}" == x"running" ]]; then
-        return 0
-    else
-        return 1
+        apt install wget curl tar socat -y >/dev/null 2>&1
     fi
 }
 
@@ -43,6 +28,9 @@ install_XrayR() {
     # 2. 下载后端程序和所有配置文件
     echo -e "${green}开始下载 XrayR 后端及配置文件...${plain}"
     wget -q -N --no-check-certificate -O /usr/local/XrayR/XrayR https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/xrayr
+    # 【关键修正】为后端程序添加可执行权限
+    chmod +x /usr/local/XrayR/XrayR
+    
     wget -q -N --no-check-certificate -O /usr/local/XrayR/config.yml https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/config.yml
     wget -q -N --no-check-certificate -O /usr/local/XrayR/dns.json https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/dns.json
     wget -q -N --no-check-certificate -O /usr/local/XrayR/route.json https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/route.json
@@ -50,16 +38,14 @@ install_XrayR() {
     wget -q -N --no-check-certificate -O /usr/local/XrayR/custom_outbound.json https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/custom_outbound.json
     wget -q -N --no-check-certificate -O /usr/local/XrayR/geoip.dat https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat
     wget -q -N --no-check-certificate -O /usr/local/XrayR/geosite.dat https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat
-    chmod +x XrayR
 
     # 3. 下载并安装 systemd 服务文件
     echo -e "${green}正在安装 systemd 服务...${plain}"
     rm -f /etc/systemd/system/XrayR.service
     wget -q -N --no-check-certificate -O /etc/systemd/system/XrayR.service https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/XrayR.service
     
-    # 4. 【已修正】下载并安装管理脚本
+    # 4. 下载并安装管理脚本
     echo -e "${green}正在安装管理脚本...${plain}"
-    # ！！！！！ 修正了这一行，让它下载正确的管理脚本 ！！！！！
     curl -o /usr/bin/XrayR -Ls https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/XrayR.sh
     chmod +x /usr/bin/XrayR
     ln -sf /usr/bin/XrayR /usr/bin/xrayr
