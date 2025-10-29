@@ -156,16 +156,20 @@ install_XrayR() {
     cp geoip.dat /etc/XrayR/geoip.dat
     cp geosite.dat /etc/XrayR/geosite.dat
 
-    # 6. 重载服务并设置自启
+    # 6. 【新增】设置配置文件权限
+    chmod -R 644 /etc/XrayR/
+    echo -e "${green}已为 /etc/XrayR/ 设置标准读取权限${plain}"
+
+    # 7. 重载服务并设置自启
     systemctl daemon-reload
     systemctl stop XrayR
     systemctl enable XrayR
     echo -e "${green}XrayR 安装/更新完成，已设置开机自启${plain}"
 
-    # 7. 启动服务并检查状态
+    # 8. 启动服务并检查状态
     if [[ ${is_new_install} -eq 1 ]]; then
         echo -e ""
-        echo -e "${yellow}全新安装成功！请手动修改 /etc/XrayR/config.yml 配置文件后，再执行 XrayR start 来启动服务！${plain}"
+        echo -e "${yellow}全新安装成功！请务必手动修改 /etc/XrayR/config.yml 配置文件后，再执行 XrayR start 来启动服务！${plain}"
     else
         systemctl start XrayR
         sleep 2
@@ -174,11 +178,11 @@ install_XrayR() {
         if [[ $? == 0 ]]; then
             echo -e "${green}XrayR 更新成功并已重启${plain}"
         else
-            echo -e "${red}XrayR 可能启动失败，请稍后使用 XrayR log 查看日志信息${plain}"
+            echo -e "${red}XrayR 可能启动失败，请使用 XrayR log 查看日志信息${plain}"
         fi
     fi
 
-    # 8. 清理并显示用法
+    # 9. 清理并显示用法
     cd $cur_dir
     rm -f install.sh
     echo -e ""
