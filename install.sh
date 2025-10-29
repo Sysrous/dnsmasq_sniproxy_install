@@ -29,15 +29,13 @@ else
     echo -e "${red}未检测到系统版本，请联系脚本作者！${plain}\n" && exit 1
 fi
 
-# ... (环境检查部分代码和之前一样，此处省略) ...
-
 install_base() {
     if [[ x"${release}" == x"centos" ]]; then
         yum install epel-release -y
-        yum install wget curl unzip tar crontabs socat -y
+        yum install wget curl tar crontabs socat -y >/dev/null 2>&1
     else
         apt update -y
-        apt install wget curl unzip tar cron socat -y
+        apt install wget curl tar cron socat -y >/dev/null 2>&1
     fi
 }
 
@@ -55,26 +53,22 @@ check_status() {
 
 install_XrayR() {
     # 1. 准备目录
-    if [[ -e /usr/local/XrayR/ ]]; then
-        rm /usr/local/XrayR/ -rf
-    fi
-    mkdir /usr/local/XrayR/ -p
+    rm -rf /usr/local/XrayR/
+    mkdir -p /usr/local/XrayR/
 	cd /usr/local/XrayR/
 
     # 2. 下载所有组件
     echo -e "${green}开始下载 XrayR 组件...${plain}"
     wget -q -N --no-check-certificate -O /usr/local/XrayR/XrayR https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/xrayr
     wget -q -N --no-check-certificate -O /usr/local/XrayR/config.yml https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/config.yml
-    wget -q -N --no-check-certificate -O /usr/local/XrayR/custom_inbound.json https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/custom_inbound.json
-    wget -q -N --no-check-certificate -O /usr/local/XrayR/custom_outbound.json https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/custom_outbound.json
     wget -q -N --no-check-certificate -O /usr/local/XrayR/dns.json https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/dns.json
     wget -q -N --no-check-certificate -O /usr/local/XrayR/route.json https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/route.json
     wget -q -N --no-check-certificate -O /usr/local/XrayR/geoip.dat https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat
     wget -q -N --no-check-certificate -O /usr/local/XrayR/geosite.dat https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat
     chmod +x XrayR
 
-    # 3. 强制覆盖安装 systemd 服务文件
-    echo -e "${green}正在安装并覆盖 systemd 服务...${plain}"
+    # 3. 强制覆盖安装 systemd 服务文件 (来自您的 GitHub)
+    echo -e "${green}正在从您的 GitHub 链接安装/覆盖 systemd 服务...${plain}"
     rm -f /etc/systemd/system/XrayR.service
     wget -q -N --no-check-certificate -O /etc/systemd/system/XrayR.service https://raw.githubusercontent.com/Sysrous/dnsmasq_sniproxy_install/refs/heads/master/XrayR.service
     
@@ -88,10 +82,8 @@ install_XrayR() {
     if [[ ! -f /etc/XrayR/config.yml ]]; then
         cp config.yml /etc/XrayR/config.yml
     fi
-    if [[ ! -f /etc/XrayR/dns.json ]]; then cp dns.json /etc/XrayR/dns.json; fi
-    if [[ ! -f /etc/XrayR/route.json ]]; then cp route.json /etc/XrayR/route.json; fi
-    if [[ ! -f /etc/XrayR/custom_inbound.json ]]; then cp custom_inbound.json /etc/XrayR/custom_inbound.json; fi
-    if [[ ! -f /etc/XrayR/custom_outbound.json ]]; then cp custom_outbound.json /etc/XrayR/custom_outbound.json; fi
+    cp dns.json /etc/XrayR/dns.json
+    cp route.json /etc/XrayR/route.json
     cp geoip.dat /etc/XrayR/geoip.dat
     cp geosite.dat /etc/XrayR/geosite.dat
 
@@ -112,10 +104,8 @@ install_XrayR() {
     check_status
     if [[ $? == 0 ]]; then
         echo -e "\n${green}成功！${plain} XrayR 安装并启动成功！"
-        echo -e "请使用 ${yellow}XrayR status${plain} 查看状态。"
     else
-        echo -e "\n${red}需要您操作！${plain}"
-        echo -e "XrayR 已安装，但服务启动失败。 ${yellow}（首次安装属正常现象）${plain}"
+        echo -e "\n${red}需要您操作！${plain} XrayR 已安装，但服务启动失败。 ${yellow}（首次安装属正常现象）${plain}"
         echo -e "请立即编辑配置文件: ${green}vi /etc/XrayR/config.yml${plain}"
         echo -e "修改保存后，请执行: ${green}XrayR restart${plain}"
     fi
@@ -126,5 +116,6 @@ install_XrayR() {
 }
 
 # --- Main ---
+echo -e "${green}正在准备安装环境...${plain}"
 install_base
 install_XrayR
